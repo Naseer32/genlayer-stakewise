@@ -70,6 +70,16 @@ export default function StrategySimulator() {
     );
   }
 
+  const evenScenario = scenarios.find((x) => x.key === "even");
+  const customScenario = scenarios.find((x) => x.key === "custom");
+  const customMatchesEven =
+    evenScenario !== undefined &&
+    customScenario !== undefined &&
+    evenScenario.shares.length === customScenario.shares.length &&
+    evenScenario.shares.every((e) =>
+      customScenario.shares.some((c) => c.validatorId === e.validatorId && Math.abs(c.percent - e.percent) < 0.01),
+    );
+
   const rewards = estimateRewards(protocolParams, result.allocated);
 
   const addPicked = () => {
@@ -314,6 +324,9 @@ export default function StrategySimulator() {
                 <article key={s.key} className="scenario">
                   <h3>{s.label}</h3>
                   <p className="small muted">{s.description}</p>
+                  {s.key === "custom" && customMatchesEven && (
+                    <p className="small">This is the same as the even split.</p>
+                  )}
                   <ul className="mini-bars">
                     {s.shares.map((sh) => (
                       <li key={sh.validatorId}>

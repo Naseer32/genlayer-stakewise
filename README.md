@@ -45,7 +45,7 @@ Every dataset carries a visible label:
 
 | Label | Meaning |
 | --- | --- |
-| **Live** | Read directly from the network by a verified adapter (not implemented yet, see below) |
+| **Live** | Read directly from the Bradbury staking contract by the built-in read-only adapter |
 | **Imported** | Pasted by you or fetched from a snapshot URL you configured. The app cannot verify it |
 | **Cached** | An earlier import saved in this browser |
 | **Demo data** | Fictional validators built into the app. Their addresses are deliberately invalid hex |
@@ -83,19 +83,15 @@ Studio/localnet validators are not production staking validators and must not be
 
 ## Limitations
 
-- No live on-chain validator reads yet. A connected endpoint does not mean validator data is live.
+- Live reads work on Bradbury only. Studio has no staking, so it shows no validators. The adapter does not provide voting power, uptime or quarantined status. A connected endpoint alone does not mean validator data is live.
 - No performance history, penalties timeline or reward data.
 - No wallet or staking actions, by design.
 - Imported data is only as accurate as its source.
 - This is education, not financial advice. Diversification can reduce concentration risk but does not remove validator penalties or guarantee higher rewards.
 
-## How live data could be added later
+## How live data works
 
-1. Verify the network, RPC endpoint, chain ID and staking contract address in the official GenLayer docs, and confirm them with the CLI (`genlayer staking epoch-info`, `genlayer staking validator-info`).
-2. Confirm which **read-only** methods the staking contract exposes (active, quarantined and banned validator lists, validator info, stake and delegation totals) using the official SDK (`genlayer-js`) or the contract ABI.
-3. Add a new module, for example `src/services/liveValidatorAdapter.ts`, that performs only read calls and returns a `ValidatorDataset` with `source: "live"`.
-4. Call it from `ValidatorsContext.tsx`, falling back to cached, then demo, then unavailable data. Keep the label logic in `DataBadge`.
-5. Keep the app free of signing: never import wallet or transaction-sending code.
+The Bradbury adapter (`src/services/liveNetworks.ts`) uses `genlayer-js` 1.1.8 to call only read methods (`getActiveValidators`, `getValidatorInfo`). Network details were confirmed with `genlayer network info`. To extend it, for example to read quarantined status, first confirm the method in the SDK or the contract ABI, keep it read-only, and never add signing or transaction code.
 
 ## Project structure
 

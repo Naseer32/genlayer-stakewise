@@ -83,7 +83,7 @@ Studio/localnet validators are not production staking validators and must not be
 
 ## Limitations
 
-- Live reads work on Bradbury only. Studio has no staking, so it shows no validators. The adapter does not provide voting power, uptime or quarantined status. A connected endpoint alone does not mean validator data is live.
+- Live reads work on Bradbury only. Studio has no staking, so it shows no validators. The adapter does not provide voting power or uptime. A connected endpoint alone does not mean validator data is live.
 - No performance history, penalties timeline or reward data.
 - No wallet or staking actions, by design.
 - Imported data is only as accurate as its source.
@@ -91,7 +91,7 @@ Studio/localnet validators are not production staking validators and must not be
 
 ## How live data works
 
-The Bradbury adapter (`src/services/liveNetworks.ts`) uses `genlayer-js` 1.1.8 to call only read methods (`getActiveValidators`, `getValidatorInfo`). Network details were confirmed with `genlayer network info`. To extend it, for example to read quarantined status, first confirm the method in the SDK or the contract ABI, keep it read-only, and never add signing or transaction code.
+The Bradbury adapter (`src/services/liveNetworks.ts`) uses `genlayer-js` 1.1.8 to call only read methods: `getActiveValidators`, `getValidatorInfo` and the staking contract method `getAllQuarantinedValidators`, the same call the official CLI makes. Network details were confirmed with `genlayer network info`. To extend it, first confirm the method in the SDK or the contract ABI, keep it read-only, and never add signing or transaction code.
 
 ## Project structure
 

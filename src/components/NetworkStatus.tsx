@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { NetworkStatusInfo } from "../types/staking";
+import { LIVE_NETWORKS, toNetworkConfig } from "../services/liveNetworks";
 import { networkConfig } from "../services/networkConfig";
 import { checkNetwork } from "../services/networkService";
 import { formatDateTime, shortAddress } from "../lib/format";
+import { useValidators } from "../state/ValidatorsContext";
 
 const LABELS: Record<NetworkStatusInfo["state"], string> = {
   unconfigured: "Not configured",
@@ -21,24 +23,49 @@ function host(url: string): string {
 }
 
 export default function NetworkStatus() {
-  const [info, setInfo] = useState<NetworkStatusInfo>(() =>
-    networkConfig.rpcUrl
-      ? { state: "checking", message: "Contacting the configured endpoint…" }
-      : {
-          state: "unconfigured",
-          message:
-            "No RPC endpoint is configured. Set VITE_GENLAYER_RPC_URL after verifying it in the official GenLayer documentation.",
-        },
+  const { networkKey } = useValidators();
+  const [nonce, setNonce] = useState(0);
+
+  const config = useMemo(
+    () => (networkKey ? toNetworkConfig(LIVE_NETWORKS[networkKey]) : networkConfig),
+    [networkKey],
   );
 
-  const run = useCallback(async () => {
-    setInfo({ state: "checking", message: "Contacting the configured endpoint…" });
-    setInfo(await checkNetwork(networkConfig));
-  }, []);
+  const [info, setInfo] = useState<NetworkStatusInfo>({
+    state: "unconfigured",
+    message: "No network selected.",
+  });
 
   useEffect(() => {
-    if (networkConfig.rpcUrl) void run();
-  }, [run]);
+    let cancelled = false;
+    if (!config.rpcUrl) {
+      setInfo({
+        state: "unconfigured",
+        message: 'No network selected. Open Validators and choose Bradbury or Studio under "Read from a network".',
+      });
+      return;
+    }
+    setInfo({ state: "checking", message: "Contacting the endpoint…" });
+    void checkNetwork(config).then((result) => {
+      if (!cancelled) setInfo(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [config, nonce]);
+
+  const stakingText =
+    networkKey === "studio"
+      ? "Not available on Studio"
+      : config.stakingAddress
+        ? shortAddress(config.stakingAddress)
+        : "Not configured";
+
+  const verifiedText = networkKey
+    ? "Yes, confirmed from the GenLayer CLI and SDK"
+    : config.verified
+      ? "Marked as verified by operator"
+      : "No";
 
   return (
     <section className="card" aria-labelledby="net-title">
@@ -50,26 +77,26 @@ export default function NetworkStatus() {
       <dl className="facts">
         <div>
           <dt>Network</dt>
-          <dd>{networkConfig.label}</dd>
+          <dd>{networkKey ? config.label : "None selected"}</dd>
         </div>
         <div>
           <dt>RPC endpoint</dt>
-          <dd>{networkConfig.rpcUrl ? host(networkConfig.rpcUrl) : "Not configured"}</dd>
+          <dd>{config.rpcUrl ? host(config.rpcUrl) : "Not configured"}</dd>
         </div>
         <div>
           <dt>Chain ID</dt>
           <dd>
             {info.chainId ?? "Not checked"}
-            {networkConfig.expectedChainId !== undefined && ` (expected ${networkConfig.expectedChainId})`}
+            {config.expectedChainId !== undefined && ` (expected ${config.expectedChainId})`}
           </dd>
         </div>
         <div>
           <dt>Staking contract</dt>
-          <dd>{networkConfig.stakingAddress ? shortAddress(networkConfig.stakingAddress) : "Not configured"}</dd>
+          <dd>{stakingText}</dd>
         </div>
         <div>
           <dt>Settings verified</dt>
-          <dd>{networkConfig.verified ? "Marked as verified by operator" : "No"}</dd>
+          <dd>{verifiedText}</dd>
         </div>
         <div>
           <dt>Last check</dt>
@@ -80,8 +107,13 @@ export default function NetworkStatus() {
         A reachable endpoint does not mean the validator list is live. See the data source below. This app is read-only:
         no wallet is connected and no transaction can be sent.
       </p>
-      {networkConfig.rpcUrl && (
-        <button type="button" className="btn btn-secondary" onClick={run} disabled={info.state === "checking"}>
+      {config.rpcUrl && (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => setNonce((n) => n + 1)}
+          disabled={info.state === "checking"}
+        >
           Check connection again
         </button>
       )}

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import ImportPanel from "../components/ImportPanel";
+import LiveNetworkPanel from "../components/LiveNetworkPanel";
 import SourceBanner from "../components/SourceBanner";
 import StatusPill from "../components/StatusPill";
 import ValidatorCard from "../components/ValidatorCard";
@@ -41,6 +42,7 @@ export default function ValidatorExplorer() {
         </div>
       )}
       <SourceBanner dataset={dataset} />
+      <LiveNetworkPanel />
       <ImportPanel />
 
       <div className="filters" role="search">

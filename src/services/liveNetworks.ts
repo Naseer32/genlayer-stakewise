@@ -1,4 +1,4 @@
-import type { NetworkConfig, Validator, ValidatorDataset } from "../types/staking";
+import type { NetworkConfig, Validator, ValidatorDataset, ValidatorStatus } from "../types/staking";
 
 export type NetworkKey = "bradbury" | "studio";
 
@@ -26,7 +26,7 @@ export const LIVE_NETWORKS: Record<NetworkKey, LiveNetwork> = {
     rpcUrl: "https://rpc-bradbury.genlayer.com",
     stakingAddress: "0x4A4449E617F8D10FDeD0b461CadEf83939E821A5",
     stakingSupported: true,
-    note: "Reads the active validator list and each validator's info directly from the staking contract. Read-only.",
+    note: "Reads the active and quarantined validator lists and each validator's info directly from the staking contract. Read-only.",
   },
   studio: {
     key: "studio",
@@ -69,6 +69,10 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
   return out;
 }
 
+interface QuarantineEntry {
+  permanentlyBanned: boolean;
+}
+
 /** Read-only. Never sends a transaction and never needs an account. */
 export async function fetchLiveDataset(key: NetworkKey): Promise<ValidatorDataset> {
   const net = LIVE_NETWORKS[key];
@@ -88,10 +92,48 @@ export async function fetchLiveDataset(key: NetworkKey): Promise<ValidatorDatase
   ]);
   const client = createClient({ chain: testnetBradbury });
 
-  const addresses = await client.getActiveValidators();
+  const activeList = await client.getActiveValidators();
+
+  /* Quarantine list (same contract call the official CLI uses). */
+  const quarantine = new Map<string, QuarantineEntry>();
+  let quarantineKnown = true;
+  try {
+    const contract = client.getStakingContract();
+    const pageSize = 100n;
+    let start = 0n;
+    for (let page = 0; page < 10; page++) {
+      const chunk = await contract.read.getAllQuarantinedValidators([start, pageSize]);
+      for (const q of chunk) {
+        quarantine.set(String(q.validator).toLowerCase(), { permanentlyBanned: q.permanentlyBanned });
+      }
+      if (chunk.length < Number(pageSize)) break;
+      start += pageSize;
+    }
+  } catch {
+    quarantineKnown = false;
+  }
+
+  /* Union of active validators and any quarantined ones that are not in the active list. */
+  const seen = new Set<string>();
+  const addresses: string[] = [];
+  for (const a of activeList) {
+    const k = String(a).toLowerCase();
+    if (!seen.has(k)) {
+      seen.add(k);
+      addresses.push(String(a));
+    }
+  }
+  const activeIds = new Set(seen);
+  for (const k of quarantine.keys()) {
+    if (!seen.has(k)) {
+      seen.add(k);
+      addresses.push(k);
+    }
+  }
+
   const infos = await mapLimit(addresses, 5, async (address) => {
     try {
-      return await client.getValidatorInfo(address);
+      return await client.getValidatorInfo(address as `0x${string}`);
     } catch {
       return null;
     }
@@ -100,25 +142,34 @@ export async function fetchLiveDataset(key: NetworkKey): Promise<ValidatorDatase
   let failed = 0;
   const validators: Validator[] = addresses.map((address, i) => {
     const info = infos[i];
-    const base = { id: address.toLowerCase(), address: String(address) };
+    const id = address.toLowerCase();
+    const q = quarantine.get(id);
+
+    let status: ValidatorStatus;
+    if (q?.permanentlyBanned) status = "banned";
+    else if (q) status = "quarantined";
+    else if (info?.banned) status = "banned";
+    else if (!quarantineKnown) status = "unknown";
+    else status = activeIds.has(id) ? "active" : "unknown";
+
     if (!info) {
       failed += 1;
-      return { ...base, status: "active" as const };
+      return { id, address, status };
     }
     const moniker = info.identity?.moniker?.trim();
     return {
-      ...base,
+      id,
+      address,
       name: moniker ? moniker : undefined,
-      status: info.banned ? ("banned" as const) : ("active" as const),
+      status,
       totalStake: rawToGen(info.vStakeRaw + info.dStakeRaw),
       delegatedStake: rawToGen(info.dStakeRaw),
     };
   });
 
-  const notes = [
-    "Voting power, uptime and quarantined status are not provided by this adapter.",
-  ];
-  if (failed > 0) notes.unshift(`${failed} validator(s) are listed as active but their details could not be read.`);
+  const notes = ["Voting power and uptime are not provided by this adapter."];
+  if (!quarantineKnown) notes.unshift("The quarantine list could not be read, so statuses are shown as unknown.");
+  if (failed > 0) notes.unshift(`${failed} validator(s) could not have their details read.`);
 
   return {
     source: "live",

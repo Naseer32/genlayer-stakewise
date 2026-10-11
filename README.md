@@ -2,7 +2,7 @@
 
 An educational **validator explorer** and **staking strategy simulator** for the GenLayer ecosystem.
 
-> **Read-only and simulation-only.** No wallet, no private keys, no seed phrases, no signing and no transactions.
+> **Reading and simulating never need a wallet.** The simulator is hypothetical. The Delegate page sends real transactions on **Bradbury testnet only**, and only after you approve each one in your own wallet. The app never asks for private keys or seed phrases.
 > Allocations you make here are hypothetical and are never real delegations.
 
 Built with React, TypeScript and Vite. The only runtime dependencies are `react` and `react-dom`
@@ -85,7 +85,7 @@ Studio/localnet validators are not production staking validators and must not be
 
 - Live reads work on Bradbury only. Studio has no staking, so it shows no validators. The adapter does not provide voting power or uptime. A connected endpoint alone does not mean validator data is live.
 - No performance history, penalties timeline or reward data.
-- No wallet or staking actions, by design.
+- Delegation works on Bradbury testnet only. There is no mainnet support, and Studio has no staking. Withdrawing (exit and claim) is not built yet.
 - Imported data is only as accurate as its source.
 - This is education, not financial advice. Diversification can reduce concentration risk but does not remove validator penalties or guarantee higher rewards.
 
@@ -109,4 +109,4 @@ tests/          simulation and parser tests
 
 ## Security
 
-No private keys, seed phrases, signing or transaction code exists in this project. The only network requests are the optional read-only `eth_chainId` check and the optional snapshot download, both to URLs you configure.
+The app never handles private keys or seed phrases: your wallet holds the keys and asks you to approve every transaction. The only function that can move funds is `delegateTo` in `src/services/delegation.ts`, and it is called only from the Delegate page after an explicit confirmation. Amounts are converted to wei with exact integer math (`src/services/amounts.ts`), because genlayer-js reads an unsuffixed string as wei. Other network requests are read-only.

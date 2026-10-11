@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Route } from "../lib/router";
+import WalletButton from "./WalletButton";
 
 interface NavItem {
   href: string;
@@ -109,14 +110,14 @@ export default function Layout({ route, children }: { route: Route; children: Re
           </ul>
         </nav>
         <p className="sidebar-note">
-          Read-only and simulation-only. No wallet, no transactions, no real delegations.
+          The simulator is hypothetical. Delegation sends real transactions on Bradbury testnet only, and you approve each one in your wallet.
         </p>
       </aside>
 
       <div className="content">
         <header className="topbar">
           <Brand />
-          <span className="pill pill-sim">Simulation only</span>
+          <WalletButton />
         </header>
         <main id="main" tabIndex={-1}>
           {children}

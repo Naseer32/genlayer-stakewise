@@ -132,8 +132,7 @@ export default function NetworkStatus() {
           <path d="M12 8h.01M11 12h1v5h1" />
         </svg>
         <span>
-          A reachable endpoint does not mean the validator list is live; see the data source below. This app is read-only: no
-          wallet is connected and no transaction can be sent.
+          A reachable endpoint does not mean the validator list is live; see the data source below. Reading data never needs a wallet. Transactions are sent only from the Delegate page, after you approve them in your wallet.
         </span>
       </p>
 

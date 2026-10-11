@@ -15,6 +15,7 @@ import {
   clearCachedDataset,
   datasetFromText,
   demoDataset,
+  unavailableDataset,
   loadCachedDataset,
   saveCachedDataset,
 } from "../services/validatorService";
@@ -69,7 +70,7 @@ function storedNetwork(): NetworkKey | null {
 const Ctx = createContext<ValidatorsContextValue | null>(null);
 
 export function ValidatorsProvider({ children }: { children: ReactNode }) {
-  const [dataset, setDataset] = useState<ValidatorDataset>(() => loadCachedDataset() ?? demoDataset());
+  const [dataset, setDataset] = useState<ValidatorDataset>(() => loadCachedDataset() ?? unavailableDataset("Reading validators from the network…"));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [networkKey, setNetworkKey] = useState<NetworkKey | null>(null);
@@ -117,6 +118,7 @@ export function ValidatorsProvider({ children }: { children: ReactNode }) {
       setDataset(next);
     } catch (err) {
       const detail = err instanceof Error && err.message ? err.message : "Unknown error.";
+      setDataset((d) => (d.source === "unavailable" ? unavailableDataset("Could not read validators from the network.") : d));
       setError(`Could not read validators from the network. ${detail}`);
     } finally {
       setLoading(false);
@@ -127,7 +129,7 @@ export function ValidatorsProvider({ children }: { children: ReactNode }) {
     if (autoLoaded || snapshotUrl) return;
     autoLoaded = true;
     const saved = storedNetwork();
-    if (saved) void loadLive(saved);
+    void loadLive(saved ?? "bradbury");
   }, [loadLive, snapshotUrl]);
 
   const importText = useCallback((text: string, statusHint: ValidatorStatus): ImportOutcome => {

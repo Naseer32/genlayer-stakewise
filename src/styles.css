@@ -365,3 +365,18 @@ thead th { text-transform: uppercase; letter-spacing: .04em; font-size: .72rem; 
 
 .bottom-nav ul { grid-template-columns: repeat(5, 1fr); }
 .bottom-nav a { font-size: .7rem; }
+
+/* ---------- wallet button in the top bar ---------- */
+.wallet-btn { white-space: nowrap; }
+.wallet-warn { background: var(--warn-bg); color: var(--warn); border-color: #f1d98a; }
+.wallet-chip {
+  display: inline-flex; align-items: center; gap: .45rem; min-height: 40px; padding: 0 .85rem; border-radius: 999px;
+  background: var(--ok-bg); color: var(--ok); border: 1px solid #a9dcc0; font-weight: 600; font-size: .85rem;
+  text-decoration: none; font-family: var(--mono);
+}
+.wallet-chip:hover { color: var(--ok); filter: brightness(.97); }
+.wallet-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
+@media (min-width: 900px) {
+  .topbar { display: flex; justify-content: flex-end; }
+  .topbar .brand { display: none; }
+}

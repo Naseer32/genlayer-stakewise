@@ -1,6 +1,5 @@
 import AllocationChart, { PALETTE, UNALLOCATED_COLOR } from "../components/AllocationChart";
 import NetworkStatus from "../components/NetworkStatus";
-import WalletPanel from "../components/WalletPanel";
 import SourceBanner from "../components/SourceBanner";
 import { formatGen, formatNumber } from "../lib/format";
 import { countByStatus } from "../services/validatorService";
@@ -39,13 +38,11 @@ export default function Dashboard() {
     <div className="page">
       <h1>Dashboard</h1>
       <p className="lead">
-        Explore GenLayer validators and test how you might spread a hypothetical amount of GEN. Nothing here is a real
-        delegation.
+        Explore GenLayer validators and test how you might spread a hypothetical amount of GEN. The simulator is hypothetical. Real delegation is a separate page and works on Bradbury testnet only.
       </p>
 
       <div className="grid">
         <NetworkStatus />
-        <WalletPanel />
 
         <section className="card" aria-labelledby="val-title">
           <div className="card-head">

@@ -1,8 +1,11 @@
 import type { ValidatorDataset } from "../types/staking";
 import { formatDateTime } from "../lib/format";
 import DataBadge from "./DataBadge";
+import { useValidators } from "../state/ValidatorsContext";
 
 export default function SourceBanner({ dataset }: { dataset: ValidatorDataset }) {
+  const { loading } = useValidators();
+  if (dataset.source === "unavailable" && loading) return null;
   const tone = dataset.source === "demo" ? "notice notice-warn" : dataset.source === "unavailable" ? "notice notice-danger" : "notice";
   return (
     <div className={tone} role="status">

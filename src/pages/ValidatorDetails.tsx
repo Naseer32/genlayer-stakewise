@@ -28,9 +28,9 @@ export default function ValidatorDetails({ id }: { id: string }) {
 
   return (
     <div className="page">
-      <p>
-        <a href="#/validators">← All validators</a>
-      </p>
+      <a className="btn btn-secondary back-btn" href="#/validators">
+        ← Back to validators
+      </a>
       <div className="title-row">
         <h1>{displayName(v)}</h1>
         <StatusPill status={v.status} />
@@ -102,6 +102,9 @@ export default function ValidatorDetails({ id }: { id: string }) {
           <pre className="code">{`genlayer staking validator-info --validator ${v.address}`}</pre>
         </section>
       )}
+      <a className="btn btn-secondary back-btn" href="#/validators">
+        ← Back to validators
+      </a>
     </div>
   );
 }

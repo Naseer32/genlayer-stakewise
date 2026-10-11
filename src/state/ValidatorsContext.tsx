@@ -38,6 +38,34 @@ interface ValidatorsContextValue {
   refresh: () => Promise<void>;
 }
 
+const NET_KEY = "stakewise.network.v1";
+let autoLoaded = false;
+
+function rememberNetwork(key: NetworkKey): void {
+  try {
+    localStorage.setItem(NET_KEY, key);
+  } catch {
+    /* storage can be blocked; the app still works */
+  }
+}
+
+function forgetNetwork(): void {
+  try {
+    localStorage.removeItem(NET_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function storedNetwork(): NetworkKey | null {
+  try {
+    const v = localStorage.getItem(NET_KEY);
+    return v === "bradbury" || v === "studio" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 const Ctx = createContext<ValidatorsContextValue | null>(null);
 
 export function ValidatorsProvider({ children }: { children: ReactNode }) {
@@ -64,6 +92,7 @@ export function ValidatorsProvider({ children }: { children: ReactNode }) {
       saveCachedDataset(next);
       setDataset(next);
       setNetworkKey(null);
+      forgetNetwork();
     } catch (err) {
       setError(
         `Could not load the validator snapshot. ${err instanceof Error && err.message ? err.message : snapshotErrorMessage(err)}`,
@@ -81,6 +110,7 @@ export function ValidatorsProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     setNetworkKey(key);
+    rememberNetwork(key);
     try {
       const next = await fetchLiveDataset(key);
       if (next.source === "live") saveCachedDataset(next);
@@ -93,12 +123,20 @@ export function ValidatorsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+    if (autoLoaded || snapshotUrl) return;
+    autoLoaded = true;
+    const saved = storedNetwork();
+    if (saved) void loadLive(saved);
+  }, [loadLive, snapshotUrl]);
+
   const importText = useCallback((text: string, statusHint: ValidatorStatus): ImportOutcome => {
     try {
       const { dataset: next, warnings } = datasetFromText(text, statusHint, "Data pasted by you");
       saveCachedDataset(next);
       setDataset(next);
       setNetworkKey(null);
+      forgetNetwork();
       setError(null);
       return { ok: true, message: `Imported ${next.validators.length} validator(s).`, warnings };
     } catch (err) {
@@ -109,6 +147,7 @@ export function ValidatorsProvider({ children }: { children: ReactNode }) {
   const loadDemo = useCallback(() => {
     setDataset(demoDataset());
     setNetworkKey(null);
+      forgetNetwork();
     setError(null);
   }, []);
 
@@ -116,6 +155,7 @@ export function ValidatorsProvider({ children }: { children: ReactNode }) {
     clearCachedDataset();
     setDataset(demoDataset());
     setNetworkKey(null);
+      forgetNetwork();
     setError(null);
   }, []);
 

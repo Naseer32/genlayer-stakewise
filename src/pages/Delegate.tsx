@@ -12,6 +12,7 @@ import { displayName } from "../services/validatorService";
 import { useValidators } from "../state/ValidatorsContext";
 import { useWallet } from "../state/WalletContext";
 import WalletPanel from "../components/WalletPanel";
+import PositionsCard from "../components/PositionsCard";
 
 const EXPLORER = "https://explorer-bradbury.genlayer.com/";
 
@@ -219,6 +220,8 @@ export default function Delegate() {
           </div>
         )}
       </section>
+
+      <PositionsCard />
     </div>
   );
 }

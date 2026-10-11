@@ -131,13 +131,17 @@ export async function fetchLiveDataset(key: NetworkKey): Promise<ValidatorDatase
     }
   }
 
-  const infos = await mapLimit(addresses, 5, async (address) => {
-    try {
-      return await client.getValidatorInfo(address as `0x${string}`);
-    } catch {
-      return null;
+  const readInfo = async (address: string) => {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        return await client.getValidatorInfo(address as `0x${string}`);
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+      }
     }
-  });
+    return null;
+  };
+  const infos = await mapLimit(addresses, 4, readInfo);
 
   let failed = 0;
   const validators: Validator[] = addresses.map((address, i) => {

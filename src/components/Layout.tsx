@@ -46,6 +46,18 @@ const NAV: NavItem[] = [
     ),
   },
   {
+    href: "#/delegate",
+    label: "Delegate",
+    match: ["delegate"],
+    icon: (
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" {...stroke}>
+        <path d="M3 7h15a3 3 0 0 1 3 3v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <path d="M3 7l12-3v3" />
+        <circle cx="17" cy="14" r="1.2" />
+      </svg>
+    ),
+  },
+  {
     href: "#/learn",
     label: "Learn",
     match: ["learn"],

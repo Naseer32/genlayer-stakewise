@@ -5,6 +5,7 @@ export type Route =
   | { name: "validators" }
   | { name: "validator"; id: string }
   | { name: "simulator" }
+  | { name: "delegate" }
   | { name: "learn" }
   | { name: "notfound" };
 
@@ -21,6 +22,7 @@ export function parseRoute(hash: string): Route {
     }
   }
   if (parts[0] === "simulator" && parts.length === 1) return { name: "simulator" };
+  if (parts[0] === "delegate" && parts.length === 1) return { name: "delegate" };
   if (parts[0] === "learn" && parts.length === 1) return { name: "learn" };
   return { name: "notfound" };
 }

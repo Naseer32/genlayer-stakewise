@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Layout from "./components/Layout";
 import { useRoute } from "./lib/router";
 import Dashboard from "./pages/Dashboard";
+import Delegate from "./pages/Delegate";
 import LearnStaking from "./pages/LearnStaking";
 import StrategySimulator from "./pages/StrategySimulator";
 import ValidatorDetails from "./pages/ValidatorDetails";
@@ -15,6 +16,7 @@ const TITLES = {
   validators: "Validators",
   validator: "Validator details",
   simulator: "Strategy simulator",
+  delegate: "Delegate",
   learn: "Learn staking",
   notfound: "Page not found",
 } as const;
@@ -35,6 +37,7 @@ export default function App() {
           {route.name === "validators" && <ValidatorExplorer />}
           {route.name === "validator" && <ValidatorDetails id={route.id} />}
           {route.name === "simulator" && <StrategySimulator />}
+          {route.name === "delegate" && <Delegate />}
           {route.name === "learn" && <LearnStaking />}
           {route.name === "notfound" && (
             <section className="empty">

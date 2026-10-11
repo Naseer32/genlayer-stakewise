@@ -359,3 +359,9 @@ thead th { text-transform: uppercase; letter-spacing: .04em; font-size: .72rem; 
 .disclosure[open] > summary { margin-bottom: .75rem; }
 
 .back-btn { justify-self: start; width: fit-content; }
+
+.check { display: flex; gap: .65rem; align-items: flex-start; font-weight: 500; font-size: .9rem; margin: 0; }
+.check input { width: 22px; height: 22px; min-height: 0; margin-top: 2px; flex: none; accent-color: var(--blue); }
+
+.bottom-nav ul { grid-template-columns: repeat(5, 1fr); }
+.bottom-nav a { font-size: .7rem; }

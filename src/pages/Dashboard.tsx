@@ -1,5 +1,6 @@
 import AllocationChart, { PALETTE, UNALLOCATED_COLOR } from "../components/AllocationChart";
 import NetworkStatus from "../components/NetworkStatus";
+import WalletPanel from "../components/WalletPanel";
 import SourceBanner from "../components/SourceBanner";
 import { formatGen, formatNumber } from "../lib/format";
 import { countByStatus } from "../services/validatorService";
@@ -44,6 +45,7 @@ export default function Dashboard() {
 
       <div className="grid">
         <NetworkStatus />
+        <WalletPanel />
 
         <section className="card" aria-labelledby="val-title">
           <div className="card-head">

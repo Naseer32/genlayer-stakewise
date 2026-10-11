@@ -8,6 +8,7 @@ import ValidatorDetails from "./pages/ValidatorDetails";
 import ValidatorExplorer from "./pages/ValidatorExplorer";
 import { StrategyProvider } from "./state/StrategyContext";
 import { ValidatorsProvider } from "./state/ValidatorsContext";
+import { WalletProvider } from "./state/WalletContext";
 
 const TITLES = {
   dashboard: "Dashboard",
@@ -27,6 +28,7 @@ export default function App() {
 
   return (
     <ValidatorsProvider>
+      <WalletProvider>
       <StrategyProvider>
         <Layout route={route}>
           {route.name === "dashboard" && <Dashboard />}
@@ -45,6 +47,7 @@ export default function App() {
           )}
         </Layout>
       </StrategyProvider>
+      </WalletProvider>
     </ValidatorsProvider>
   );
 }

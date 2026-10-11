@@ -21,6 +21,11 @@ export default function Dashboard() {
   const { state, result } = useStrategy();
   const counts = countByStatus(dataset.validators);
   const statusCount = (n: number) => (counts.statusSupported ? formatNumber(n) : "Not provided");
+  const stakeValues = dataset.validators.map((v) => v.totalStake).filter((n): n is number => n !== undefined);
+  const delegatedValues = dataset.validators.map((v) => v.delegatedStake).filter((n): n is number => n !== undefined);
+  const sumOf = (list: number[]) => list.reduce((x, y) => x + y, 0);
+  const sourceTag = dataset.source === "live" ? " (live)" : dataset.source === "demo" ? " (demo)" : "";
+  const stakeMissing = counts.total - stakeValues.length;
 
   const segments = result.rows
     .map((r, i) => ({ label: r.validatorId, value: r.amount ?? 0, color: PALETTE[i % PALETTE.length] }))
@@ -64,7 +69,15 @@ export default function Dashboard() {
               <Stat value={statusCount(counts.active)} label="Active" />
               <Stat value={statusCount(counts.quarantined)} label="Quarantined" />
               <Stat value={statusCount(counts.banned)} label="Banned" />
+              <Stat value={stakeValues.length > 0 ? formatGen(sumOf(stakeValues)) : "Not provided"} label={"Total stake" + sourceTag} />
+              <Stat value={delegatedValues.length > 0 ? formatGen(sumOf(delegatedValues)) : "Not provided"} label={"Delegated stake" + sourceTag} />
             </div>
+          )}
+          {dataset.validators.length > 0 && stakeValues.length > 0 && (
+            <p className="muted small">
+              Stake totals cover all loaded validators, including quarantined and banned ones.
+              {stakeMissing > 0 && " " + stakeValues.length + " of " + counts.total + " validators report stake."}
+            </p>
           )}
           {dataset.validators.length > 0 && !counts.statusSupported && (
             <p className="muted small">This data source does not include validator status.</p>

@@ -21,7 +21,7 @@ export interface LiveNetwork {
 export const LIVE_NETWORKS: Record<NetworkKey, LiveNetwork> = {
   bradbury: {
     key: "bradbury",
-    label: "GenLayer Bradbury Testnet",
+    label: "Bradbury",
     chainId: 4221,
     rpcUrl: "https://rpc-bradbury.genlayer.com",
     stakingAddress: "0x4A4449E617F8D10FDeD0b461CadEf83939E821A5",
@@ -30,7 +30,7 @@ export const LIVE_NETWORKS: Record<NetworkKey, LiveNetwork> = {
   },
   studio: {
     key: "studio",
-    label: "GenLayer Studio",
+    label: "Studio",
     chainId: 61999,
     rpcUrl: "https://studio.genlayer.com/api",
     stakingSupported: false,

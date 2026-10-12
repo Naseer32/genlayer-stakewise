@@ -85,7 +85,7 @@ Studio/localnet validators are not production staking validators and must not be
 
 - Live reads work on Bradbury only. Studio has no staking, so it shows no validators. The adapter does not provide voting power or uptime. A connected endpoint alone does not mean validator data is live.
 - No performance history, penalties timeline or reward data.
-- Delegation works on Bradbury testnet only. There is no mainnet support, and Studio has no staking. Withdrawing (exit all, then claim) is built but has not been tested with real transactions yet, so treat delegation, withdrawal and claim as unverified until then.
+- Delegation works on Bradbury testnet only. There is no mainnet support, and Studio has no staking. Delegation was tested once on Bradbury testnet with the minimum amount: the transaction was confirmed and the contract recorded it as a pending deposit. Withdrawing (exit all, then claim) is built but has not been tested with real transactions yet, because the network epoch had not advanced when this was written. Treat withdrawal and claim as unverified.
 - Imported data is only as accurate as its source.
 - This is education, not financial advice. Diversification can reduce concentration risk but does not remove validator penalties or guarantee higher rewards.
 

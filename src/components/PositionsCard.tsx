@@ -99,6 +99,16 @@ export default function PositionsCard() {
                 <dt>Delegated now</dt>
                 <dd>{p.stakeGen}</dd>
               </div>
+              {p.deposits.map((d) => (
+                <div key={"dep" + String(d.epoch)}>
+                  <dt>Deposit made in epoch {String(d.epoch)}</dt>
+                  <dd>
+                    {d.stakeGen}
+                    <br />
+                    <span className="small muted">Waiting to become active. It counts as delegated after the epoch ends.</span>
+                  </dd>
+                </div>
+              ))}
               {p.pending.map((w) => (
                 <div key={String(w.epoch)}>
                   <dt>Withdrawal started in epoch {String(w.epoch)}</dt>

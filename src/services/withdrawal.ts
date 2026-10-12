@@ -14,6 +14,7 @@ export interface Position {
   shares: bigint;
   stakeGen: string;
   pending: PendingExit[];
+  deposits: PendingExit[];
 }
 
 export interface PositionsResult {
@@ -68,12 +69,13 @@ export async function readPositions(delegator: string, validators: string[]): Pr
   const positions: Position[] = [];
   infos.forEach((info, i) => {
     if (!info) return;
-    if (info.shares > 0n || info.pendingWithdrawals.length > 0) {
+    if (info.shares > 0n || info.pendingWithdrawals.length > 0 || info.pendingDeposits.length > 0) {
       positions.push({
         validator: validators[i],
         shares: info.shares,
         stakeGen: info.stake,
         pending: info.pendingWithdrawals.map((w) => ({ epoch: w.epoch, stakeGen: w.stake })),
+        deposits: info.pendingDeposits.map((d) => ({ epoch: d.epoch, stakeGen: d.stake })),
       });
     }
   });

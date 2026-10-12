@@ -1,4 +1,5 @@
 import { BRADBURY_CHAIN_ID } from "./wallet";
+import { encodeJoin, sendStakingTx } from "./walletTx";
 import { weiToGenString } from "./amounts";
 
 type ClientConfig = NonNullable<Parameters<typeof import("genlayer-js").createClient>[0]>;
@@ -54,9 +55,8 @@ export function delegationErrorMessage(err: unknown): string {
 }
 
 /**
- * Sends a delegation. This is the ONLY function in the app that can move funds, and the wallet
- * asks the user to approve it. The amount is always passed as a bigint in wei, never as a string,
- * because genlayer-js reads an unsuffixed string as wei.
+ * Sends a delegation through the user's wallet. The wallet shows the transaction and the user approves it.
+ * The amount is always a bigint in wei. The app never holds a private key.
  */
 export async function delegateTo(params: {
   validator: string;
@@ -69,24 +69,17 @@ export async function delegateTo(params: {
   }
   if (params.amountWei <= 0n) throw new Error("The amount must be greater than zero.");
   if (!/^0x[a-fA-F0-9]{40}$/.test(params.validator)) throw new Error("That is not a valid validator address.");
-  const provider = typeof window !== "undefined" ? window.ethereum : undefined;
-  if (!provider) throw new Error("No wallet found.");
-
-  const [{ createClient }, { testnetBradbury }] = await Promise.all([
-    import("genlayer-js"),
-    import("genlayer-js/chains"),
-  ]);
-  const client = createClient({
-    chain: testnetBradbury,
-    account: params.account as `0x${string}`,
-    provider: provider as unknown as ClientConfig["provider"],
+  const out = await sendStakingTx({
+    account: params.account,
+    chainId: params.chainId,
+    data: encodeJoin(params.validator),
+    valueWei: params.amountWei,
   });
-  const result = await client.delegatorJoin({
-    validator: params.validator as `0x${string}`,
-    amount: params.amountWei,
-  });
+  if (out.status === "reverted") {
+    throw new Error("The transaction was confirmed on the network but failed. Nothing was delegated.");
+  }
   return {
-    transactionHash: result.transactionHash,
+    transactionHash: out.transactionHash,
     amountGen: weiToGenString(params.amountWei),
   };
 }

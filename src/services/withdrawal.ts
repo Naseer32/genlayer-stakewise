@@ -1,4 +1,5 @@
 import { BRADBURY_CHAIN_ID } from "./wallet";
+import { encodeClaim, encodeExit, sendStakingTx } from "./walletTx";
 import { weiToGenString } from "./amounts";
 
 type ClientConfig = NonNullable<Parameters<typeof import("genlayer-js").createClient>[0]>;
@@ -79,18 +80,6 @@ export async function readPositions(delegator: string, validators: string[]): Pr
   return { positions, currentEpoch: epochInfo.currentEpoch, failed };
 }
 
-async function writeClient(account: string, chainId: number | null) {
-  if (chainId !== BRADBURY_CHAIN_ID) throw new Error("Switch your wallet to Bradbury testnet first.");
-  const provider = typeof window !== "undefined" ? window.ethereum : undefined;
-  if (!provider) throw new Error("No wallet found.");
-  const { createClient, testnetBradbury } = await loadSdk();
-  return createClient({
-    chain: testnetBradbury,
-    account: account as `0x${string}`,
-    provider: provider as unknown as ClientConfig["provider"],
-  });
-}
-
 /** Starts the withdrawal of ALL shares from one validator. Funds are claimable only after the waiting period. */
 export async function exitAll(params: {
   validator: string;
@@ -100,12 +89,13 @@ export async function exitAll(params: {
 }): Promise<{ transactionHash: string }> {
   if (params.shares <= 0n) throw new Error("There is nothing to withdraw.");
   if (!/^0x[a-fA-F0-9]{40}$/.test(params.validator)) throw new Error("That is not a valid validator address.");
-  const client = await writeClient(params.account, params.chainId);
-  const result = await client.delegatorExit({
-    validator: params.validator as `0x${string}`,
-    shares: params.shares,
+  const out = await sendStakingTx({
+    account: params.account,
+    chainId: params.chainId,
+    data: encodeExit(params.validator, params.shares),
   });
-  return { transactionHash: result.transactionHash };
+  if (out.status === "reverted") throw new Error("The withdrawal was confirmed on the network but failed. Nothing changed.");
+  return { transactionHash: out.transactionHash };
 }
 
 /** Claims matured withdrawals. The contract decides whether the waiting period is over. */
@@ -115,12 +105,13 @@ export async function claimFunds(params: {
   chainId: number | null;
 }): Promise<{ transactionHash: string }> {
   if (!/^0x[a-fA-F0-9]{40}$/.test(params.validator)) throw new Error("That is not a valid validator address.");
-  const client = await writeClient(params.account, params.chainId);
-  const result = await client.delegatorClaim({
-    validator: params.validator as `0x${string}`,
-    delegator: params.account as `0x${string}`,
+  const out = await sendStakingTx({
+    account: params.account,
+    chainId: params.chainId,
+    data: encodeClaim(params.account, params.validator),
   });
-  return { transactionHash: result.transactionHash };
+  if (out.status === "reverted") throw new Error("The claim was confirmed on the network but failed. Nothing changed.");
+  return { transactionHash: out.transactionHash };
 }
 
 export { weiToGenString };

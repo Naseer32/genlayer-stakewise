@@ -59,6 +59,17 @@ const NAV: NavItem[] = [
     ),
   },
   {
+    href: "#/advisor",
+    label: "Advisor",
+    match: ["advisor"],
+    icon: (
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" {...stroke}>
+        <path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z" />
+        <path d="M9 12l2 2 4-4" />
+      </svg>
+    ),
+  },
+  {
     href: "#/learn",
     label: "Learn",
     match: ["learn"],

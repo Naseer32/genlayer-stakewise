@@ -380,3 +380,6 @@ thead th { text-transform: uppercase; letter-spacing: .04em; font-size: .72rem; 
   .topbar { display: flex; justify-content: flex-end; }
   .topbar .brand { display: none; }
 }
+
+.bottom-nav ul { grid-template-columns: repeat(6, 1fr); }
+.bottom-nav a { font-size: .66rem; }

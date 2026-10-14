@@ -110,3 +110,26 @@ tests/          simulation and parser tests
 ## Security
 
 The app never handles private keys or seed phrases: your wallet holds the keys and asks you to approve every transaction. The only function that can move funds is `delegateTo` in `src/services/delegation.ts`, and it is called only from the Delegate page after an explicit confirmation. Amounts are converted to wei with exact integer math (`src/services/amounts.ts`), because genlayer-js reads an unsuffixed string as wei. Other network requests are read-only.
+
+## StakeWise Advisor (Intelligent Contract)
+
+`contracts/stakewise_advisor.py` is a **non-custodial** Intelligent Contract. It never receives, holds or moves GEN or any token. It stores a hypothetical staking plan (validator addresses and shares) per wallet, and stores a risk analysis for that plan.
+
+- **Bradbury testnet:** `0x2F0aA208f5767be28CBd62C7BA50ddEa36715D84`
+- Each wallet can only write its own plan. Inputs are validated: 1 to 20 validators, valid addresses, no duplicates, whole basis points that add up to exactly 10000.
+- The concentration risk level (LOW, MEDIUM, HIGH) is computed by fixed rules, never by the model. GenLayer validators reach consensus (`prompt_comparative`) on an AI-written explanation, which receives only the computed numbers (no user text and no addresses), so there is nothing to inject. Text that promises rewards or safety is replaced by a fixed sentence.
+- Methods: `save_plan`, `analyze_plan`, `clear_plan` (write); `has_plan`, `get_plan`, `get_analysis`, `get_plan_count` (read).
+
+### How it was verified
+
+- 17 local tests (`python -m pytest tests/test_advisor_logic.py`) cover the pure logic with a stub SDK. They do **not** prove the contract works inside GenVM.
+- The contract was deployed and exercised on Studio and on Bradbury: `save_plan` stored a plan, `analyze_plan` stored an analysis, and both were read back. On Bradbury the first `analyze_plan` ended in `LEADER_TIMEOUT` and stored nothing; a retry succeeded.
+- Bugs found only by running it on the network: the CLI sends arrays and address-like strings as typed values instead of text, so the contract accepts both forms.
+
+### Limits
+
+- The **Advisor page** in the app only **reads** the contract. Saving and analysing a plan is done with the GenLayer CLI for now:
+  `genlayer write <address> save_plan --args "My plan" '[{"validator":"0x…","bps":6000},{"validator":"0x…","bps":4000}]'`
+  then `genlayer write <address> analyze_plan`.
+- The contract has not been audited. It holds no funds, but treat it as a testnet demo.
+- Contracts cannot be edited after deployment; fixes mean a new deployment with a new address.
